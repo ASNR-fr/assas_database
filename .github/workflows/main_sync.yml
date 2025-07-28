@@ -1,0 +1,37 @@
+name: Sync Fork with Upstream
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Runs every day at 03:00 UTC
+  workflow_dispatch:      # Allows manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Add upstream remote
+        run: git remote add upstream https://github.com/Helmholtz-AI-Energy/assas_database.git
+
+      - name: Fetch upstream
+        run: git fetch upstream
+
+      - name: Merge upstream/main into forked main
+        run: |
+          git checkout main
+          git merge upstream/main --allow-unrelated-histories --no-edit || true
+
+      - name: Push changes to forked repo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin main
