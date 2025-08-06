@@ -3159,15 +3159,12 @@ class AssasOdessaNetCDF4Converter:
                     "Please ensure the file is properly initialized."
                 )
                 return
-            if "time_points" not in list(dimension_group.variables.keys()):
-                start_index = 0
-            else:
-                start_index = (
-                    dimension_group.variables["time_points"].getncattr(
-                        "completed_index"
-                    )
-                    + 1
-                )
+
+            start_index = (
+                dimension_group.variables["time_points"].getncattr("completed_index")
+                + 1
+            )
+            logger.info(f"Set start_index to {start_index}.")
 
             time_points = self.time_points[start_index:]
 
@@ -3251,6 +3248,9 @@ class AssasOdessaNetCDF4Converter:
 
                 dimension_group.variables["time_points"].completed_index = (
                     start_index + idx
+                )
+                logger.info(
+                    f"Updated completed index to {start_index + idx} for time points."
                 )
 
     def get_all_variable_datasets(self, ncfile: netCDF4.Dataset) -> dict:
@@ -3764,8 +3764,20 @@ class AssasOdessaNetCDF4Converter:
 
             # Initialize dimensions at root level
             dimension_list = self.variable_index["dimension"].unique().tolist()
+            dimension_list = [
+                dimension.split(";") if ";" in dimension else dimension
+                for dimension in dimension_list
+            ]
+            dimension_list = [
+                item
+                for sublist in dimension_list
+                for item in (sublist if isinstance(sublist, list) else [sublist])
+            ]
             if "none" in dimension_list:
                 dimension_list.remove("none")
+            logger.info(
+                f"Found {len(dimension_list)} unique dimensions: {dimension_list}"
+            )
 
             dimensions_group = ncfile.createGroup("dimensions")
             dimensions_group.description = "Group for dataset dimensions"
@@ -3788,7 +3800,7 @@ class AssasOdessaNetCDF4Converter:
                 np.float32,
             )
             time_dataset[:] = self.time_points
-            time_dataset.completed_index = 0
+            time_dataset.completed_index = -1
 
             # Create variables with proper unit handling
             for _, variable in self.variable_index.iterrows():
@@ -3975,7 +3987,7 @@ class AssasOdessaNetCDF4Converter:
                 location_counts[location] = []
             location_counts[location].append(var_name)
 
-        logger.info("Variable assignment summary:\n")
+        logger.info("Variable assignment summary:")
         for location, var_list in location_counts.items():
             logger.info(f"{location}: {len(var_list)} variables")
             logger.debug(
@@ -4365,6 +4377,67 @@ class AssasOdessaNetCDF4Converter:
 
         except Exception as e:
             logger.error(f"Failed to create metadata variable {meta_var_name}: {e}")
+
+    def populate_metadata_variables_in_domain_groups(self) -> None:
+        """Populate the meta data for the meta data variables in the domain groups."""
+        logger.info("Populating meta data variables in domain groups.")
+
+        with netCDF4.Dataset(f"{self.output_path}", "a", format="NETCDF4") as ncfile:
+            for group_name, group_config in DOMAIN_GROUP_CONFIG.items():
+                logger.info(f"Processing group: {group_name}")
+                if "subgroups" not in group_config:
+                    continue
+                for subgroup_name, subgroup_config in group_config["subgroups"].items():
+                    if "metadata_vars" not in subgroup_config:
+                        continue
+
+                    # Get the group and subgroup objects
+                    if group_name not in ncfile.groups:
+                        logger.warning(f"Group {group_name} not found in file.")
+                        continue
+                    group = ncfile.groups[group_name]
+                    if subgroup_name not in group.groups:
+                        logger.warning(
+                            f"Subgroup {subgroup_name} not found in group {group_name}."
+                        )
+                        continue
+                    subgroup = group.groups[subgroup_name]
+
+                    for meta_var_name in subgroup_config["metadata_vars"]:
+                        if meta_var_name not in META_DATA_VAR_NAMES:
+                            logger.warning(
+                                f"Meta data variable {meta_var_name} "
+                                f"not in META_DATA_VAR_NAMES."
+                            )
+                            continue
+                        meta_config = META_DATA_VAR_NAMES[meta_var_name]
+
+                        # Read meta data from Odessa
+                        odessa_base = pyod.restore(str(self.input_path), 0)
+                        meta_data = self.read_meta_data_from_odessa_base(
+                            odessa_base,
+                            domain=meta_config.get("domain"),
+                            element=meta_config.get("element"),
+                            attribute=meta_config.get("attribute"),
+                        )
+
+                        # Write meta data to the variable in the NetCDF4 file
+                        if meta_var_name not in subgroup.variables:
+                            logger.warning(
+                                f"Meta data variable {meta_var_name} not "
+                                f"found in {group_name}/{subgroup_name}."
+                            )
+                            continue
+
+                        meta_var = subgroup.variables[meta_var_name]
+                        # Store as JSON string attribute
+                        meta_var.setncattr(
+                            "meta_data", json.dumps({"meta_data": meta_data})
+                        )
+                        logger.info(
+                            f"Populated meta data for {meta_var_name} in "
+                            f"{group_name}/{subgroup_name}."
+                        )
 
     def assign_variables_to_enhanced_groups(self) -> None:
         """Assign existing variables to enhanced groups.

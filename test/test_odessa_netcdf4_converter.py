@@ -328,7 +328,7 @@ class AssasOdessaNetCDF4ConverterTest(unittest.TestCase):
             self.converter.create_metadata_variables_in_groups()
 
             self.test_logger.info("Converting metadata from Odessa")
-            self.converter.convert_metadata_from_odessa_to_netcdf4()
+            self.converter.populate_metadata_variables_in_domain_groups()
 
             self.test_logger.info("Populating data from groups to NetCDF4")
             self.converter.populate_data_from_groups_to_netcdf4()
