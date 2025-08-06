@@ -9,28 +9,38 @@
   "primary_junction_meta": {
     "domain": "PRIMARY",
     "element": "JUNCTION",
-    "attribute": ["NAME", "NV_DOWN", "NV_UP"],
+    "attribute": [
+      "NAME",
+      "NV_DOWN",
+      "NV_UP"
+    ],
     "target_group": "primary/junction",
     "description": "Primary circuit junction connections"
   },
   "primary_pump_meta": {
     "domain": "PRIMARY",
     "element": "PUMP",
-    "attribute": ["NAME"],
+    "attribute": [
+      "NAME"
+    ],
     "target_group": "primary/pipe",
     "description": "Primary circuit pump names"
   },
   "primary_wall_meta": {
     "domain": "PRIMARY",
     "element": "WALL",
-    "attribute": ["NAME"],
+    "attribute": [
+      "NAME"
+    ],
     "target_group": "primary/wall",
     "description": "Primary circuit wall structure names"
   },
   "primary_pipe_meta": {
     "domain": "PRIMARY",
     "element": "PIPE",
-    "attribute": ["NAME"],
+    "attribute": [
+      "NAME"
+    ],
     "target_group": "primary/pipe",
     "description": "Primary circuit pipe specifications"
   },
@@ -44,48 +54,96 @@
   "secondary_junction_meta": {
     "domain": "SECONDAR",
     "element": "JUNCTION",
-    "attribute": ["NAME", "NV_DOWN", "NV_UP"],
-    "target_group": "secondary/geometry",
+    "attribute": [
+      "NAME",
+      "NV_DOWN",
+      "NV_UP"
+    ],
+    "target_group": "secondary/junction",
     "description": "Secondary circuit junction connections"
   },
   "secondary_pump_meta": {
     "domain": "SECONDAR",
     "element": "PUMP",
-    "attribute": ["NAME"],
-    "target_group": "secondary/pump",
+    "attribute": [
+      "NAME"
+    ],
+    "target_group": "secondary/wall",
     "description": "Secondary circuit pump names"
   },
   "secondary_wall_meta": {
     "domain": "SECONDAR",
     "element": "WALL",
-    "attribute": ["NAME"],
+    "attribute": [
+      "NAME"
+    ],
     "target_group": "secondary/wall",
     "description": "Secondary circuit wall structure names"
   },
   "vessel_mesh_meta": {
     "domain": "VESSEL",
     "element": "MESH",
-    "attribute": ["NAME"],
+    "attribute": [
+      "NAME"
+    ],
     "target_group": "vessel/mesh",
     "description": "Vessel mesh element names"
   },
   "vessel_face_meta": {
     "domain": "VESSEL",
     "element": "FACE",
-    "attribute": ["NAME"],
+    "attribute": [
+      "NAME"
+    ],
     "target_group": "vessel/face",
     "description": "Vessel face element names"
   },
   "connection_meta": {
     "domain": null,
     "element": "CONNECTI",
-    "attribute": ["NAME", "FROM", "TO", "TYPE"],
-    "target_group": "connection/metadata",
+    "attribute": [
+      "NAME",
+      "FROM",
+      "TO",
+      "TYPE"
+    ],
+    "target_group": "connection/general",
     "description": "Connection topology and types"
+  },
+  "sensor_meta": {
+    "domain": null,
+    "element": "SENSOR",
+    "attribute": [
+      "NAME"
+    ],
+    "target_group": "other/metadata",
+    "description": "Sensor metadata including names"
   },
   "connection_valves_meta": {
     "domain": "CONNECTI",
     "element": "VALVE",
-    "attribute": ["NAME"]
+    "attribute": [
+      "NAME"
+    ],
+    "target_group": "connection/general",
+    "description": "Connection valve metadata including names"
+  },
+  "containment_wall_meta": {
+    "domain": "CONTAINM",
+    "element": "WALL",
+    "attribute": [
+      "NAME"
+    ],
+    "target_group": "containment/wall",
+    "description": "Containment wall structure names"
+  },
+  "containment_connection_meta": {
+    "domain": "CONTAINM",
+    "element": "CONN",
+    "attribute": [
+      "NAME"
+    ],
+    "target_group": "containment/connection",
+    "description": "Containment connection names and identifiers"
   }
 }
